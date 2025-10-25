@@ -1,5 +1,5 @@
 use crate::{
-    card::{Value, CARDS}, hash::{next, pseudohash}, rand::random_from_seed, seed::{nth_combination, CHARSET}
+    card::{CARDS}, hash::{next, pseudohash}, rand::random_from_seed, seed::{nth_combination, CHARSET}
 };
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -20,11 +20,26 @@ fn is_valid(seed: &[u8]) -> bool {
 
     let mut seed = next(pseudohash(&buffer[..buf_end]));
 
-    for _ in 0..52 {
+    /*let idx = (random_from_seed(seed / 2. + hashed_seed_div_2) * 52.) as usize;
+    let parity = CARDS[idx].0 as u8 & 1;
+
+    seed = next(seed);
+
+    for _ in 1..52 {
         let idx = (random_from_seed(seed / 2. + hashed_seed_div_2) * 52.) as usize;
         let card = &CARDS[idx];
 
-        if card.0 >= Value::Ten  {
+        if card.0 as u8 & 1 != parity {
+            return false;
+        }
+
+        seed = next(seed);
+    }*/
+
+    for _ in 0..52 {
+        let idx = (random_from_seed(seed / 2. + hashed_seed_div_2) * 52.) as usize;
+
+        if idx != CARDS.len() - 1 {
             return false;
         }
 
@@ -34,8 +49,8 @@ fn is_valid(seed: &[u8]) -> bool {
     true
 }
 
-const RESUME_LENGTH: usize = 0;
-const RESUME_INDEX: u64 = 0;
+const RESUME_LENGTH: usize = 0; // 7;
+const RESUME_INDEX: u64 = 0; // 2190720297;
 
 fn main() {
     for len in RESUME_LENGTH..=8 {
@@ -54,9 +69,9 @@ fn main() {
 
             if is_valid(s) {
                 let seed = unsafe { std::str::from_utf8_unchecked(s) };
-                println!("FOUND seed: {seed}");
+                println!("FOUND seed: {seed} with combination {n}");
 
-                std::process::exit(0);
+                // std::process::exit(0);
             }
         });
     }

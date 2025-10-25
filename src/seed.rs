@@ -1,4 +1,4 @@
-pub const CHARSET: &[u8] = b"ABCDEFGHIJKLMNPQRSTUVWXYZ123456789"; // Alphanumeric minus 0 and O
+pub const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"; // Alphanumeric minus 0 
 
 pub fn nth_combination(len: usize, mut n: usize) -> [u8; 8] {
     let base = CHARSET.len();

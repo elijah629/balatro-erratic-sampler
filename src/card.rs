@@ -6,7 +6,7 @@ pub enum Suit {
     Diamond,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum Value {
     Two = 0,
@@ -19,9 +19,9 @@ pub enum Value {
     Nine = 7,
     Ten = 8,
     Jack = 9,
-    Queen = 10,
-    King = 11,
-    Ace = 12,
+    Queen = 11,
+    King = 13,
+    Ace = 15,
 }
 
 #[derive(Debug, PartialEq, Eq)]
