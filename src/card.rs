@@ -86,6 +86,8 @@ pub const CARDS: [Card; 52] = [
     Card(Value::Ten, Suit::Spade),   // S_T
 ];
 
+pub const CARDS_LAST_INDEX: usize = CARDS.len() - 1;
+
 use std::fmt;
 
 impl fmt::Display for Card {

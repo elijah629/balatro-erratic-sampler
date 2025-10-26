@@ -1,8 +1,9 @@
 #[inline(always)]
 pub fn random_from_seed(mut d: f64) -> f64 {
     const K: [u32; 4] = [63, 58, 55, 47];
-    const Q: [u32; 4] = [31, 19, 24, 21];
     const S: [u32; 4] = [18, 28, 7, 8];
+    const KMS: [u32; 4] = [63 - 18, 58 - 28, 55 - 7, 47 - 8];
+    const Q: [u32; 4] = [31, 19, 24, 21];
     const TOP_MASKS: [u64; 4] = [
         (!0u64) << (64 - K[0]),
         (!0u64) << (64 - K[1]),
@@ -11,8 +12,8 @@ pub fn random_from_seed(mut d: f64) -> f64 {
     ];
 
     #[inline(always)]
-    fn transform(z: u64, k: u32, q: u32, s: u32, top_mask: u64) -> u64 {
-        (((z << q) ^ z) >> (k - s)) ^ ((z & top_mask) << s)
+    const fn transform(z: u64, k_minus_s: u32, q: u32, s: u32, top_mask: u64) -> u64 {
+        (((z << q) ^ z) >> (k_minus_s)) ^ ((z & top_mask) << s)
     }
 
     let mut u = [0u64; 4];
@@ -29,13 +30,13 @@ pub fn random_from_seed(mut d: f64) -> f64 {
 
     for _ in 0..10 {
         for i in 0..4 {
-            u[i] = transform(u[i], K[i], Q[i], S[i], TOP_MASKS[i]);
+            u[i] = transform(u[i], KMS[i], Q[i], S[i], TOP_MASKS[i]);
         }
     }
 
     let mut r = 0u64;
     for i in 0..4 {
-        u[i] = transform(u[i], K[i], Q[i], S[i], TOP_MASKS[i]);
+        u[i] = transform(u[i], KMS[i], Q[i], S[i], TOP_MASKS[i]);
         r ^= u[i];
     }
 

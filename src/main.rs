@@ -1,5 +1,6 @@
+use std::time::Duration;
 use crate::{
-    card::{CARDS}, hash::{next, pseudohash}, rand::random_from_seed, seed::{nth_combination, CHARSET}
+    card::{CARDS_LAST_INDEX}, hash::{next, pseudohash, pseudohash_erratic}, rand::random_from_seed, seed::{nth_combination, CHARSET}
 };
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -9,24 +10,32 @@ mod hash;
 mod rand;
 mod seed;
 
+fn main() {
+    //test_length::<0>();
+    //test_length::<1>();
+    //test_length::<2>();
+    //test_length::<3>();
+    //test_length::<4>(); 
+    //test_length::<5>();
+    //test_length::<6>();
+    //test_length::<7>();
+    test_length::<8>();
+
+    println!("Search finished.");
+}
+
 #[inline(always)]
-fn is_valid(seed: &[u8]) -> bool {
-    let hashed_seed_div_2 = pseudohash(seed) / 2.;
+fn is_valid<const N: usize>(seed: [u8; N]) -> bool {
+    let half_hashed = pseudohash(seed) * 0.5;
+    let mut seed = next(pseudohash_erratic(seed));
 
-    let buf_end = 7 + seed.len();
-
-    let mut buffer = [b'e', b'r', b'r', b'a', b't', b'i', b'c', 0, 0, 0, 0, 0, 0, 0, 0];
-    buffer[7..buf_end].copy_from_slice(seed);
-
-    let mut seed = next(pseudohash(&buffer[..buf_end]));
-
-    /*let idx = (random_from_seed(seed / 2. + hashed_seed_div_2) * 52.) as usize;
+    /*let idx = (random_from_seed((0.5f64).mul_add(seed, half_hashed)) * 52.) as usize;
     let parity = CARDS[idx].0 as u8 & 1;
 
     seed = next(seed);
 
     for _ in 1..52 {
-        let idx = (random_from_seed(seed / 2. + hashed_seed_div_2) * 52.) as usize;
+        let idx = (random_from_seed((0.5f64).mul_add(seed, half_hashed)) * 52.) as usize;
         let card = &CARDS[idx];
 
         if card.0 as u8 & 1 != parity {
@@ -37,9 +46,9 @@ fn is_valid(seed: &[u8]) -> bool {
     }*/
 
     for _ in 0..52 {
-        let idx = (random_from_seed(seed / 2. + hashed_seed_div_2) * 52.) as usize;
+        let idx = (random_from_seed((0.5f64).mul_add(seed, half_hashed)) * 52.) as usize;
 
-        if idx != CARDS.len() - 1 {
+        if idx != CARDS_LAST_INDEX {
             return false;
         }
 
@@ -49,32 +58,29 @@ fn is_valid(seed: &[u8]) -> bool {
     true
 }
 
-const RESUME_LENGTH: usize = 0; // 7;
-const RESUME_INDEX: u64 = 0; // 2190720297;
-
-fn main() {
-    for len in RESUME_LENGTH..=8 {
-        let start = if len == RESUME_LENGTH { RESUME_INDEX } else { 0 };
-
-        let total = CHARSET.len().pow(len as u32);
-        let bar = ProgressBar::new(total as u64)
-            .with_message(format!("Searching seeds of length {len}"))
+#[inline(always)]
+fn test_length<const LENGTH: usize>() {
+    let total = CHARSET.len().pow(LENGTH as u32);
+    
+    let bar = ProgressBar::new(total as u64)
+            .with_message(format!("Searching seeds of length {LENGTH}"))
             .with_style(
                 ProgressStyle::with_template("{msg} [{bar:40.cyan/blue}] {pos}/{len} ({percent}%) | ETA: {eta_precise} | {per_sec}")
                     .unwrap()
-            ).with_position(start);
+            );
 
-        (start as usize..total).into_par_iter().progress_with(bar).for_each(|n| {
-            let s = &nth_combination(len, n)[..len];
+            bar.enable_steady_tick(Duration::from_millis(100));
+
+          (0..total).into_par_iter().progress_with(bar).for_each(|n| {
+            let s = nth_combination::<{LENGTH}>(n);
 
             if is_valid(s) {
-                let seed = unsafe { std::str::from_utf8_unchecked(s) };
+                let seed = unsafe { std::str::from_utf8_unchecked(&s) };
                 println!("FOUND seed: {seed} with combination {n}");
 
                 // std::process::exit(0);
             }
         });
-    }
 
-    println!("Search finished.");
+
 }
