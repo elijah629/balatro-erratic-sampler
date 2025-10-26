@@ -11,14 +11,14 @@ mod rand;
 mod seed;
 
 fn main() {
-    //test_length::<0>();
-    //test_length::<1>();
-    //test_length::<2>();
-    //test_length::<3>();
-    //test_length::<4>(); 
-    //test_length::<5>();
-    //test_length::<6>();
-    //test_length::<7>();
+    test_length::<0>();
+    test_length::<1>();
+    test_length::<2>();
+    test_length::<3>();
+    test_length::<4>(); 
+    test_length::<5>();
+    test_length::<6>();
+    test_length::<7>();
     test_length::<8>();
 
     println!("Search finished.");
