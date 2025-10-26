@@ -1,4 +1,5 @@
 use std::f64::consts::PI;
+// Magic number?
 const C: f64 = 1.1239285023;
 
 #[inline(always)]
@@ -37,6 +38,37 @@ pub fn pseudohash_erratic<const N: usize>(seed: [u8; N]) -> f64 {
     num
 }
 
+#[inline(always)]
+pub fn pseudohash_erratic_will_be_nan<const N: usize>(seed: [u8; N]) -> bool {
+    const PREFIX_LENGTH: usize = 7;
+    const PREFIX: [u8; PREFIX_LENGTH] = *b"erratic";
+
+    let mut num = 1.0_f64;
+
+    for j in (0..N).rev() {
+        let byte = seed[j];
+        let i1 = (PREFIX_LENGTH + 1 + j) as f64;
+        num = ((C / num) * (byte as f64) * PI + PI * i1).fract();
+
+        if num.is_nan() {
+            return true;
+        }
+    }
+
+    for k in (0..PREFIX_LENGTH).rev() {
+        let byte = PREFIX[k];
+        let i1 = (1 + k) as f64;
+        num = ((C / num) * (byte as f64) * PI + PI * i1).fract();
+
+        if num.is_nan() {
+            return true;
+        }
+    }
+
+    false
+}
+
+
 use std::fmt::{self, Write};
 
 struct StackBuf {
@@ -71,6 +103,8 @@ impl fmt::Write for StackBuf {
 pub fn next(previous: f64) -> f64 {
     let next = (2.134453429141 + previous * 1.72431234).fract();
 
+    // TODO: Find a fast impl of f64 formatting that rounds
+    // exactly like from_str (rust's impl)
     let mut buf = StackBuf::new();
     let _ = write!(buf, "{next:.13}");
 
